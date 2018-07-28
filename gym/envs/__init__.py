@@ -1,5 +1,13 @@
 from gym.envs.registration import registry, register, make, spec
 
+# Rover Domain
+# ----------------------------------------
+register(
+    id='rover-v0',
+    entry_point='gym.envs.rover_domain:RoverDomain',
+)
+
+
 # Algorithmic
 # ----------------------------------------
 
