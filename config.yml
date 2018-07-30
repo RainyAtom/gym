@@ -1,4 +1,4 @@
-Seed: 1
+Seed: null
 Initial POI Locations: null
 Initial Agent Positions: null
 Number of Agents: 2
@@ -9,5 +9,5 @@ Coupling: 1
 Observation Radius: 3.0
 Consideration Radius: 10.0
 Minimum Distance: 1.0
-Steps: 100
-Epochs: 10
+Steps: 50
+Epochs: 5
