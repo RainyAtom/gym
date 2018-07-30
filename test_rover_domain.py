@@ -7,6 +7,7 @@ from gym.envs.rover_domain.policies.policy import RandomPolicy
 from gym.envs.rover_domain.policies.policy import CCEA
 from gym.envs.rover_domain.policies.policy import Evo_MLP
 from gym.envs.rover_domain.rewards.g import GlobalReward
+import pyglet
 
 def main(config_f):
     # Unique identifier for each run, used in naming files
@@ -41,19 +42,22 @@ def main(config_f):
         for step in range(config["Steps"]):
             env.render()
             observation, reward, done, info = env.step(team)
-            #reward.record_history(observation)
+            # reward.record_history(observation)
 
         print("Generation " + str(generation+1) + ": " + str(observation))
 
-        # Compute the Global Reward
-        #fitness = global_reward.calculate_reward()
-
+        # # Compute the Global Reward
+        # fitness = global_reward.calculate_reward()
+        #
         # # Store the global reward in a file
         # with open(id + '_global_reward.yml', 'a') as file:
         #     file.write(str(fitness['agent_0']) + "\n")
+        #
+        # # CCEA Evaluation
+        # CCEA(team, fitness)
 
-        # CCEA Evaluation
-        #CCEA(team, fitness)
+    # screenshot domain rendering when done
+    pyglet.image.get_buffer_manager().get_color_buffer().save(id + config_f + '.png')
 
 
 if __name__ == '__main__':
