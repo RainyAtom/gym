@@ -48,8 +48,8 @@ class RoverDomain(gym.Env):
 
         self.viewer = None
 
-        #self.action_space = spaces.Discrete(self.world_width)
-        self.observation_space = self.domain.get_jointstate()
+        # self.action_space = spaces.Discrete(self.world_width)
+        # self.observation_space = self.domain.get_jointstate()
         self.seed()
         self.reset()
 
