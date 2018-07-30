@@ -40,6 +40,7 @@ class RoverDomain(gym.Env):
         self.num_agents = config["Number of Agents"]
         self.world_width = config["World Width"]
         self.world_length = config["World Length"]
+        self.observation_rad = config["Observation Radius"]
 
         self.path = {}
         for a in range(self.num_agents):
@@ -58,7 +59,7 @@ class RoverDomain(gym.Env):
         return [seed]
 
 
-    def step(self, team, reward):
+    def step(self, team):
         #print("Path: " + str(self.path))
 
         # Get States from Rover Doman
@@ -69,14 +70,13 @@ class RoverDomain(gym.Env):
         self.domain.apply_actions(actions)
         # Update the joint state
         joint_state = self.domain.get_jointstate()
-        reward.record_history(joint_state)
 
         for i in range(self.num_agents):
             self.path["agent" + str(i)].append(tuple(joint_state['agents']['agent_' + str(i)]['loc']))
 
         done = True # serves no purpose atm
 
-        return self.domain.get_jointstate(), 0, done, {}
+        return joint_state, 0, done, {}
 
 
     def reset(self):
@@ -109,19 +109,25 @@ class RoverDomain(gym.Env):
                 self.agent_trans.append(agenttrans)
                 self.viewer.add_geom(agent)
 
-            # Initialize and Render POIs
+            # Initialize and Render POIs and their observation radius
             color = 0
             for i in range(self.num_pois):
                 color = color + (1/self.num_pois)
                 poi = rendering.make_circle(poi_rad)
+                observation_rad = rendering.make_circle(self.observation_rad*scale, 30, False)
                 poi.set_color(color, 0, 0)  #rgb
+                observation_rad.set_color(color, 0, 0)
                 self.poitrans = rendering.Transform()
+                self.radtrans = rendering.Transform()
                 poi.add_attr(self.poitrans)
+                observation_rad.add_attr(self.radtrans)
                 self.viewer.add_geom(poi)
+                self.viewer.add_geom(observation_rad)
 
                 poi_x = self.poi_loc['poi_' + str(i)]['loc'][0]*scale
                 poi_y = self.poi_loc['poi_' + str(i)]['loc'][1]*scale
                 self.poitrans.set_translation(poi_x, poi_y)
+                self.radtrans.set_translation(poi_x, poi_y)
 
         color = 0
         for a in range(len(self.agent_trans)):

@@ -50,14 +50,14 @@ def cf(domain_state, agent_id, agent_info, coupling=1, consideration_radius=5.0)
 
     # create a new agent at each POI that improved reward
     for poi_loc in cf_poi:
-        new_domain_state['agents'].append({'loc': poi_loc, 'theta': 0})
+        new_domain_state['agents'].append({'loc': poi_loc, 'theta': 0}) # may need to indicate a specific name "agent_" + num
 
     return new_domain_state
 
 def cf_D(temp_domain, domain_state, considered_poi):
     # Place additional agents at each of the POIs in range of the agent
     for poi_loc in considered_poi:
-        temp_domain['agents'].append({'loc': poi_loc, 'theta': 0})
+        temp_domain['agents'].append({'loc': poi_loc, 'theta': 0})  # may need to indicate a specific name "agent_" + num
     # Calculate D++ with additional agents placed at each of the POIs in range of the agent
     cf_diff = GlobalReward.calculate_reward(temp_domain) - GlobalReward.calculate_reward(domain_state)
     cf_diff = cf_diff / len(considered_poi)
