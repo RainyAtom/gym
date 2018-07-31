@@ -38,16 +38,17 @@ def main(config_f):
         config["Observation Radius"],
         config["Minimum Distance"])
 
-    path_flag = False
     for generation in range(config["Epochs"]):
         for step in range(config["Steps"]):
+            # Get the actions from the team
+            actions = team.get_jointaction(observation)
+            # Apply actions, only render last generation
             if generation is (config["Epochs"] - 1):
                 env.init_path()
-                path_flag = True
-                observation, reward, done, info = env.step(team, path_flag)
+                observation, reward, done, info = env.step(actions)
                 env.render()
             else:
-                observation, reward, done, info = env.step(team, path_flag)
+                observation, reward, done, info = env.step(actions)
             # reward.record_history(observation)
 
         print("Generation " + str(generation+1) + ": " + str(observation))
