@@ -18,9 +18,6 @@ class RoverDomain(gym.Env):
             config_f = "config.yml"
         else:
             config_f = sys.argv[1]
-
-        if config_f is None:
-            config_f = "config.yml"
         with open(config_f, 'r') as f:
             config = yaml.load(f)
 
@@ -41,7 +38,7 @@ class RoverDomain(gym.Env):
         self.world_width = config["World Width"]
         self.world_length = config["World Length"]
         self.observation_rad = config["Observation Radius"]
-
+        self.path_flag = False
         self.viewer = None
 
         # self.action_space = spaces.Discrete(self.world_width)
@@ -55,19 +52,13 @@ class RoverDomain(gym.Env):
         return [seed]
 
 
-    def step(self, team, path_flag):
-        #print("Path: " + str(self.path))
-
-        # Get States from Rover Doman
-        joint_state = self.domain.get_jointstate()
-        # Get the actions from the team
-        actions = team.get_jointaction(joint_state)
+    def step(self, actions):
         # Pass actions to domain to update
         self.domain.apply_actions(actions)
         # Update the joint state
         joint_state = self.domain.get_jointstate()
-
-        if path_flag is True:
+        # Store agent paths
+        if self.path_flag is True:
             for i in range(self.num_agents):
                 self.path["agent" + str(i)].append(tuple(joint_state['agents']['agent_' + str(i)]['loc']))
 
@@ -84,6 +75,7 @@ class RoverDomain(gym.Env):
         self.path = {}
         for a in range(self.num_agents):
             self.path["agent" + str(a)] = [tuple(self.agent_loc['agent_' + str(a)]['loc'])]
+        self.path_flag = True
 
 
     def render(self, mode='human'):
