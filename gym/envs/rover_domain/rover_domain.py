@@ -69,7 +69,7 @@ class RoverDomain(gym.Env):
         # Increment step executed
         self.current_step = self.current_step + 1
         # Store agent locations
-        if self.current_step is (self.step_path_flag + 1):
+        if self.current_step == (self.step_path_flag + 1):
             for a in range(self.num_agents):
                 self.path["agent" + str(a)] = [tuple(self.agent_loc['agent_' + str(a)]['loc'])]
         elif self.current_step > (self.step_path_flag + 1):

@@ -43,7 +43,7 @@ def main(config_f):
             # Get the actions from the team
             actions = team.get_jointaction(observation)
             # Apply actions, only render last generation
-            if generation is (config["Epochs"] - 1):
+            if generation == (config["Epochs"] - 1):
                 observation, reward, done, info = env.step(actions)
                 env.render()
             else:
