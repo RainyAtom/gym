@@ -33,12 +33,20 @@ class RoverDomain(gym.Env):
 
         self.poi_loc = self.domain.get_jointstate()['pois']
         self.agent_loc = self.domain.get_jointstate()['agents']
+
         self.num_pois = config["Number of POIs"]
         self.num_agents = config["Number of Agents"]
+
         self.world_width = config["World Width"]
         self.world_length = config["World Length"]
         self.observation_rad = config["Observation Radius"]
-        self.path_flag = False
+
+        # Dict to store agent locations
+        self.path = {}
+        # Number of steps to execute before tracking paths
+        self.step_path_flag = (config["Epochs"] * config["Steps"]) - config["Steps"]
+        self.current_step = 0
+
         self.viewer = None
 
         # self.action_space = spaces.Discrete(self.world_width)
@@ -57,25 +65,25 @@ class RoverDomain(gym.Env):
         self.domain.apply_actions(actions)
         # Update the joint state
         joint_state = self.domain.get_jointstate()
-        # Store agent paths
-        if self.path_flag is True:
+
+        # Increment step executed
+        self.current_step = self.current_step + 1
+        # Store agent locations
+        if self.current_step is (self.step_path_flag + 1):
+            for a in range(self.num_agents):
+                self.path["agent" + str(a)] = [tuple(self.agent_loc['agent_' + str(a)]['loc'])]
+        elif self.current_step > (self.step_path_flag + 1):
             for i in range(self.num_agents):
                 self.path["agent" + str(i)].append(tuple(joint_state['agents']['agent_' + str(i)]['loc']))
 
         done = True # serves no purpose atm
+        reward = 0  # serves no purpose atm
 
-        return joint_state, 0, done, {}
+        return joint_state, reward, done, {}
 
 
     def reset(self):
         return self.domain.get_jointstate()
-
-
-    def init_path(self):
-        self.path = {}
-        for a in range(self.num_agents):
-            self.path["agent" + str(a)] = [tuple(self.agent_loc['agent_' + str(a)]['loc'])]
-        self.path_flag = True
 
 
     def render(self, mode='human'):
