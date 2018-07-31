@@ -42,10 +42,6 @@ class RoverDomain(gym.Env):
         self.world_length = config["World Length"]
         self.observation_rad = config["Observation Radius"]
 
-        self.path = {}
-        for a in range(self.num_agents):
-            self.path["agent" + str(a)] = [tuple(self.agent_loc['agent_' + str(a)]['loc'])]
-
         self.viewer = None
 
         # self.action_space = spaces.Discrete(self.world_width)
@@ -59,7 +55,7 @@ class RoverDomain(gym.Env):
         return [seed]
 
 
-    def step(self, team):
+    def step(self, team, path_flag):
         #print("Path: " + str(self.path))
 
         # Get States from Rover Doman
@@ -71,8 +67,9 @@ class RoverDomain(gym.Env):
         # Update the joint state
         joint_state = self.domain.get_jointstate()
 
-        for i in range(self.num_agents):
-            self.path["agent" + str(i)].append(tuple(joint_state['agents']['agent_' + str(i)]['loc']))
+        if path_flag is True:
+            for i in range(self.num_agents):
+                self.path["agent" + str(i)].append(tuple(joint_state['agents']['agent_' + str(i)]['loc']))
 
         done = True # serves no purpose atm
 
@@ -83,6 +80,12 @@ class RoverDomain(gym.Env):
         return self.domain.get_jointstate()
 
 
+    def init_path(self):
+        self.path = {}
+        for a in range(self.num_agents):
+            self.path["agent" + str(a)] = [tuple(self.agent_loc['agent_' + str(a)]['loc'])]
+
+
     def render(self, mode='human'):
 
         screen_width = 500
@@ -90,26 +93,24 @@ class RoverDomain(gym.Env):
         scale = screen_width / self.world_width
         agent_side = 10
         poi_rad = 5
-        path = {}
 
         if self.viewer is None:
             self.viewer = rendering.Viewer(screen_width, screen_height)
             self.agent_trans = []
 
-            # Initialize agents
+            # Render agents
             color = 0
             for i in range(self.num_agents):
                 color = color + (1/self.num_agents)
                 l, r, t, b = -agent_side/2, agent_side/2, agent_side/2, -agent_side/2   # left, right, top, bottom
                 agent = rendering.FilledPolygon([(l,b), (l,t), (r,t), (r,b)])
-                agent.set_color(0, color, 0)
+                agent.set_color(0, color, 0)    #rgb
                 agenttrans = rendering.Transform()
                 agent.add_attr(agenttrans)
-
                 self.agent_trans.append(agenttrans)
                 self.viewer.add_geom(agent)
 
-            # Initialize and Render POIs and their observation radius
+            # Render POIs and their observation radius
             color = 0
             for i in range(self.num_pois):
                 color = color + (1/self.num_pois)
@@ -123,15 +124,18 @@ class RoverDomain(gym.Env):
                 observation_rad.add_attr(self.radtrans)
                 self.viewer.add_geom(poi)
                 self.viewer.add_geom(observation_rad)
-
+                # Scale POI location to screen size and place POI
                 poi_x = self.poi_loc['poi_' + str(i)]['loc'][0]*scale
                 poi_y = self.poi_loc['poi_' + str(i)]['loc'][1]*scale
                 self.poitrans.set_translation(poi_x, poi_y)
                 self.radtrans.set_translation(poi_x, poi_y)
 
+        # Dict to store vertices to draw agents' paths
+        path = {}
+
         color = 0
         for a in range(len(self.agent_trans)):
-            # Render agents
+            # Scale agent location to screen size and place agent
             agent_x = self.agent_loc['agent_' + str(a)]['loc'][0]*scale
             agent_y = self.agent_loc['agent_' + str(a)]['loc'][1]*scale
             self.agent_trans[a].set_translation(agent_x, agent_y)
@@ -144,7 +148,7 @@ class RoverDomain(gym.Env):
                 y = loc[1] * scale
                 path["agent" + str(a)].append(tuple([x, y]))
             agent_path = rendering.make_polyline(path["agent" + str(a)])
-            agent_path.set_color(0, color, 0)
+            agent_path.set_color(0, color, 0)   #rgb
             self.viewer.add_geom(agent_path)
 
         return self.viewer.render(return_rgb_array=mode == 'rgb_array')
@@ -152,5 +156,3 @@ class RoverDomain(gym.Env):
 
     def close(self):
         if self.viewer: self.viewer.close()
-
-
