@@ -2,7 +2,7 @@ import gym.spaces
 from gym import spaces
 from gym.utils import seeding
 from gym.envs.rover_domain.simulators.rover_domain_simulator import RoverDomainS
-from gym.envs.classic_control import rendering
+from gym.envs.rover_domain import rendering
 import yaml
 import sys
 
