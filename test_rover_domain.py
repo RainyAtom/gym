@@ -8,13 +8,16 @@ from gym.envs.rover_domain.policies.policy import CCEA
 from gym.envs.rover_domain.policies.policy import Evo_MLP
 from gym.envs.rover_domain.rewards.g import GlobalReward
 import pyglet
+# from gym.wrappers.monitoring.video_recorder import VideoRecorder
+
 
 def main(config_f):
     # Unique identifier for each run, used in naming files
     id = str(time.clock())
 
     env = gym.make('rover-v0')
-    observation = env.reset()
+
+    # rec = VideoRecorder(env, './video/test_' + id)
 
     # Read and store parameters from configuration file.
     if config_f is None:
@@ -40,12 +43,17 @@ def main(config_f):
 
     for generation in range(config["Epochs"]):
         for step in range(config["Steps"]):
+            observation = env.reset()
             # Get the actions from the team
             actions = team.get_jointaction(observation)
             # Apply actions, only render last generation
             if generation == (config["Epochs"] - 1):
                 observation, reward, done, info = env.step(actions)
                 env.render()
+                # rec.capture_frame()
+                # screenshot domain rendering when done
+                pyglet.image.get_buffer_manager().get_color_buffer().save(
+                    './sim_screenshots/' + id + config_f + '_step' + str(step) + '.png')
             else:
                 observation, reward, done, info = env.step(actions)
             # reward.record_history(observation)
@@ -62,8 +70,7 @@ def main(config_f):
         # # CCEA Evaluation
         # CCEA(team, fitness)
 
-    # screenshot domain rendering when done
-    pyglet.image.get_buffer_manager().get_color_buffer().save(id + config_f + '.png')
+    # rec.close()
 
 
 if __name__ == '__main__':
