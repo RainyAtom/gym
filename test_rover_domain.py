@@ -22,7 +22,7 @@ def main(config_f):
     with open(config_f, 'r') as f:
         config = yaml.load(f)
 
-    # # Write config file name to file meant to store reward
+    # # Write config file name to file, file will later store reward
     # with open(id + '_global_reward.yml', 'a') as file:
     #     file.write(config_f + "\n")
 
@@ -40,6 +40,7 @@ def main(config_f):
 
     for generation in range(config["Epochs"]):
         for step in range(config["Steps"]):
+            # Get domain's joint state
             observation = env.reset()
             # Get the actions from the team
             actions = team.get_jointaction(observation)
@@ -47,7 +48,7 @@ def main(config_f):
             if generation == (config["Epochs"] - 1):
                 observation, reward, done, info = env.step(actions)
                 env.render()
-                # screenshot domain rendering when done
+                # screenshot domain rendering
                 pyglet.image.get_buffer_manager().get_color_buffer().save(
                     './sim_screenshots/' + id + '_step' + str(step) + '.png')
             else:
@@ -66,7 +67,7 @@ def main(config_f):
         # # CCEA Evaluations
         # CCEA(team, fitness)
 
-    # Convert screenshots of domain rendering to a video
+    # Convert screenshots of domain rendering into a video
     os.system("ffmpeg -r 1/0.1 -i ./sim_screenshots/" + id + "_step%0d.png -c:v libx264 -r 30 -pix_fmt yuv420p ./videos/" + id + config_f + ".mp4")
     # Delete screenshots of domain rendering
     for step in range(config["Steps"]):
