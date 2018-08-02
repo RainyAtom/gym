@@ -1,7 +1,7 @@
 import gym.spaces
 from gym import spaces
 from gym.utils import seeding
-from gym.envs.rover_domain.simulators.rover_domain_simulator import RoverDomainS
+from gym.envs.rover_domain.simulators.rover_domain_simulator import RoverDomainSim
 from gym.envs.rover_domain import rendering
 import yaml
 import sys
@@ -22,7 +22,7 @@ class RoverDomain(gym.Env):
             config = yaml.load(f)
 
         # Initialize the rover domain.
-        self.domain = RoverDomainS(
+        self.domain = RoverDomainSim(
             config["Seed"],
             config["Initial POI Locations"],
             config["Initial Agent Positions"],
