@@ -1,5 +1,6 @@
 """
 2D rendering framework
+Originally in envs.classic_control
 """
 from __future__ import division
 import os
