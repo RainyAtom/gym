@@ -9,7 +9,7 @@ import random
 import sys
 from gym.envs.rover_domain.simulators.simulator import Simulator
 
-class RoverDomainS(Simulator):
+class RoverDomainSim(Simulator):
     """ Rover Domain
     Multiagent domain that has a collection of POIs and moving agents.
     Jointstate is position / pose of all objects, joint action is agent
@@ -37,7 +37,7 @@ class RoverDomainS(Simulator):
         :param world_width: The width of the rover domain.
         :param world_length: The length of the rover domain.
         """
-        super(RoverDomainS, self).__init__()
+        super(RoverDomainSim, self).__init__()
 
         self.number_agents = number_agents
         self.number_pois = number_pois
