@@ -1,23 +1,20 @@
-import gym
-import yaml
-import sys
-import time
 from gym.envs.rover_domain.teams.rover_team import RoverTeam
 from gym.envs.rover_domain.policies.policy import RandomPolicy
 from gym.envs.rover_domain.policies.policy import CCEA
 from gym.envs.rover_domain.policies.policy import Evo_MLP
 from gym.envs.rover_domain.rewards.g import GlobalReward
+import gym
+import yaml
+import sys
+import time
 import pyglet
-# from gym.wrappers.monitoring.video_recorder import VideoRecorder
-
+import os
 
 def main(config_f):
     # Unique identifier for each run, used in naming files
     id = str(time.clock())
 
     env = gym.make('rover-v0')
-
-    # rec = VideoRecorder(env, './video/test_' + id)
 
     # Read and store parameters from configuration file.
     if config_f is None:
@@ -50,10 +47,9 @@ def main(config_f):
             if generation == (config["Epochs"] - 1):
                 observation, reward, done, info = env.step(actions)
                 env.render()
-                # rec.capture_frame()
                 # screenshot domain rendering when done
                 pyglet.image.get_buffer_manager().get_color_buffer().save(
-                    './sim_screenshots/' + id + config_f + '_step' + str(step) + '.png')
+                    './sim_screenshots/' + id + '_step' + str(step) + '.png')
             else:
                 observation, reward, done, info = env.step(actions)
             # reward.record_history(observation)
@@ -67,11 +63,14 @@ def main(config_f):
         # with open(id + '_global_reward.yml', 'a') as file:
         #     file.write(str(fitness['agent_0']) + "\n")
         #
-        # # CCEA Evaluation
+        # # CCEA Evaluations
         # CCEA(team, fitness)
 
-    # rec.close()
-
+    # Convert screenshots of domain rendering to a video
+    os.system("ffmpeg -r 1/0.1 -i ./sim_screenshots/" + id + "_step%0d.png -c:v libx264 -r 30 -pix_fmt yuv420p ./videos/" + id + config_f + ".mp4")
+    # Delete screenshots of domain rendering
+    for step in range(config["Steps"]):
+        os.remove("./sim_screenshots/" + id + "_step" + str(step) + ".png")
 
 if __name__ == '__main__':
     # When ran through command line and no specific file is indicated, use default configuration file

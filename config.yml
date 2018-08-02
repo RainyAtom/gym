@@ -3,8 +3,8 @@ Seed: null
 Initial POI Locations: null
  # Agent positions must be formatted as [{'loc': [#,#], 'theta': #}, {'loc': [#,#], 'theta': #}, ...]
 Initial Agent Positions: null
-Number of Agents: 5
-Number of POIs: 4
+Number of Agents: 100
+Number of POIs: 25
 World Width: 50
 World Length: 50
 Coupling: 1
