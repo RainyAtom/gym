@@ -41,7 +41,7 @@ def cf(domain_state, agent_id, agent_info, coupling=1, consideration_radius=5.0)
         return domain_state
     else:
         # for each POI in range of the agent, place an additional agent and check for reward improvement
-        for poi_loc in considered_poi and len(cf_poi) < coupling - 1:
+        for poi_loc in considered_poi and len(cf_poi) < total_num_agents - 1:
             # Calculate D++ with additional agent placed at POI considered
             cf_diff = cf_D(domain_state, domain_state, poi_loc)
 
