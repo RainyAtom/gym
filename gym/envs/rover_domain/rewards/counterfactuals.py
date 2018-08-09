@@ -37,20 +37,18 @@ def cf(cf, domain_state, agent_id, agent_info, consideration_radius=5.0):
         if cf_diff <= agent_diff:
             return domain_state
         else:
-            # Used to determine if only adding one set of agents or more
-            bool_flag = True
             # Domain to implement counterfactual
             new_domain_state = domain_state
             # Number of counterfactual agents that can be added
             agent_limit = len(domain_state["agents"]) - 1
             # new agent id
-            id = len(domain_state["agents"])
+            id_num = len(domain_state["agents"])
             # Evaluation to compare to before adding an agent
             compare_d = agent_diff
             # List of POIs that with an additional agent could increase reward
             cf_poi = []
 
-            while (agent_limit is not 0 and bool_flag):
+            while (agent_limit is not 0):
                 for poi_loc in considered_poi and len(cf_poi) < agent_limit:
                     # Calculate D++ with additional agent placed at POI considered
                     cf_diff = cf_D(domain_state, poi_loc)
@@ -58,19 +56,21 @@ def cf(cf, domain_state, agent_id, agent_info, consideration_radius=5.0):
                     if cf_diff > compare_d:  # NOTE: not sure if this is the right comparison, compare_d may be wrong
                         cf_poi.append(poi_loc)
                         # create a new agent at POI that improved reward
-                        new_agent_id = "agent_" + str(id)
-                        id = id + 1
+                        new_agent_id = "agent_" + str(id_num)
+                        id_num = id_num + 1
                         new_domain_state['agents'][new_agent_id] = {'loc': poi_loc, 'theta': 0}
 
                 compare_d = cf_D(domain_state, cf_poi)  # May be wrong
+                # Calculate D++ with another set of additional agents placed at each of the POIs in range of the agent
+                cf_diff = cf_D(new_domain_state, cf_poi)
+                # if version 1 or if no change, indicate to stop counterfactual implementation
+                if cf == 0 or cf_diff <= compare_d:
+                    break
+
                 domain_state = new_domain_state
-
-                agent_limit = agent_limit - len(cf_poi)
                 considered_poi = cf_poi
+                agent_limit = agent_limit - len(cf_poi)
                 cf_poi = []
-
-                if cf == 0:
-                    bool_flag = False
 
             return new_domain_state
 
