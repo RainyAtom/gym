@@ -3,14 +3,13 @@ from gym.envs.rover_domain.rewards.d import DifferenceReward
 
 """
 TODO: Needs to be modified to fit within a D++ implementation in a different version of the rover domain.
-    -The main difference will be where additional agents are placed.
     -Names for accessing domain_state information will need to be adjusted.
 """
 
 def cf(cf, domain_state, agent_id, agent_info, consideration_radius=5.0):
     """
     If there are POIs within range of the agent, then place counterfactual agents
-    :param cf: indicates counterfactual implementation version, 0-single agents 1-multiple agents
+    :param cf: indicates counterfactual implementation version, 0-one by one 1-waves
     :param domain_state: current state of the domain
     :param agent_id: id of agent considering counterfactual agents
     :param agent_info: info of agent considering counterfactual agents, location
@@ -36,55 +35,68 @@ def cf(cf, domain_state, agent_id, agent_info, consideration_radius=5.0):
     # Else add counterfactual agents
     else:
         # Calculate difference reward
-        agent_diff = DifferenceReward.calculate_reward(domain_state, agent_id)
-        if cf == 0:
-            # Calculate D++ with 1 additional agent placed at each of the POIs in range of the agent
-            cf_diff = cf_D(domain_state, considered_poi, agent_limit)
-        else:
-            # Calculate D++ with team size distributed between each of the POIs in range of the agent
-            cf_diff = modified_cf_D(domain_state, considered_poi, agent_limit)
+        compare_d = DifferenceReward.calculate_reward(domain_state, agent_id)
+        # Calculate D++ with team size distributed between each of the POIs in range of the agent
+        cf_diff = modified_cf_D(domain_state, considered_poi, agent_limit)
 
         # Compare evaluations to see if counterfactual agents improve reward
-        if cf_diff <= agent_diff:
+        if cf_diff <= compare_d:
             return domain_state
         else:
-            # Domain to implement counterfactual
+            # bool flag
+            reward_improved = False
+            # Domain to implement counterfactual agents
             new_domain_state = domain_state
             # new agent id
             id_num = len(domain_state["agents"])
-            # Evaluation to compare to before adding an agent
-            compare_d = agent_diff
-            # List of POIs that with an additional agent could increase reward
+            # List of POIs where counterfactual agents were placed
             cf_poi = []
 
-            while (agent_limit is not 0):
-                for poi_loc in considered_poi and len(cf_poi) < agent_limit:
-                    # Calculate D++ with additional agent placed at POI considered
-                    cf_diff = cf_D(domain_state, poi_loc)
-                    # Checks if additional agent improves reward
-                    if cf_diff > compare_d:  # NOTE: not sure if this is the right comparison, compare_d may be wrong
+            # Place counterfactual agents one by one
+            if cf == 0:
+                while (reward_improved == False):
+                    for poi_loc in considered_poi:
+                        # Calculate D++ with additional agent placed at POI considered
+                        cf_diff = cf_D(new_domain_state, poi_loc)
+                        # Checks if additional agent improves reward
+                        if cf_diff <= compare_d:
+                            cf_poi.append(poi_loc)
+                            # create a new agent at POI that DIDN'T improve reward
+                            new_agent_id = "agent_" + str(id_num)
+                            id_num = id_num + 1
+                            new_domain_state['agents'][new_agent_id] = {'loc': poi_loc, 'theta': 0}
+                        else:
+                            cf_poi.append(poi_loc)
+                            # create a new agent at POI that improved reward
+                            new_agent_id = "agent_" + str(id_num)
+                            id_num = id_num + 1
+                            new_domain_state['agents'][new_agent_id] = {'loc': poi_loc, 'theta': 0}
+                            reward_improved = True
+                            break
+            # Place counterfactual agents in waves. wave --> one agent per POI
+            elif cf == 1:
+                while (reward_improved == False):
+                    for poi_loc in considered_poi and len(cf_poi) < agent_limit:
                         cf_poi.append(poi_loc)
-                        # create a new agent at POI that improved reward
+                        # create a new agent at POI
                         new_agent_id = "agent_" + str(id_num)
                         id_num = id_num + 1
                         new_domain_state['agents'][new_agent_id] = {'loc': poi_loc, 'theta': 0}
 
-                compare_d = cf_D(domain_state, cf_poi)  # May be wrong
-                # Calculate D++ with another set of additional agents placed at each of the POIs in range of the agent
-                cf_diff = cf_D(new_domain_state, cf_poi)
-                # if version 1 or if no change, indicate to stop counterfactual implementation
-                if cf == 0 or cf_diff <= compare_d:
-                    break
-
-                domain_state = new_domain_state
-                considered_poi = cf_poi
-                agent_limit = agent_limit - len(cf_poi)
-                cf_poi = []
+                    cf_diff = cf_D(domain_state, cf_poi)
+                    if cf_diff > compare_d:
+                        reward_improved = True
 
             return new_domain_state
 
 
 def cf_D(domain_state, considered_poi):
+    """
+    Placeholder for D++ evaluation
+    :param domain_state: current state of the domain
+    :param considered_poi: where to place counterfactual agents
+    :return:
+    """
     temp_domain = domain_state
     id = len(domain_state['agents'])
     # Place additional agents at each of the POIs in range of the agent
@@ -92,7 +104,7 @@ def cf_D(domain_state, considered_poi):
         new_agent_id = "agent_" + str(id)
         id = id + 1
         temp_domain['agents'][new_agent_id] = {'loc': poi_loc, 'theta': 0}
-    # Calculate D++ with additional agents placed at each of the POIs in range of the agent
+
     cf_diff = GlobalReward.calculate_reward(temp_domain) - GlobalReward.calculate_reward(domain_state)
     cf_diff = cf_diff / len(considered_poi)
 
@@ -100,6 +112,13 @@ def cf_D(domain_state, considered_poi):
 
 
 def modified_cf_D(domain_state, considered_poi, agent_limit):
+    """
+    Placeholder for D++ evaluation
+    :param domain_state: current state of the domain
+    :param considered_poi: where to place counterfactual agents
+    :param agent_limit: max number of counterfactual agents
+    :return:
+    """
     # modified cf_D(domain_state, considered_poi)
     temp_domain = domain_state
     id = len(domain_state['agents'])
@@ -113,7 +132,7 @@ def modified_cf_D(domain_state, considered_poi, agent_limit):
                 agent_limit = agent_limit - 1
             else:
                 break
-    # Calculate D++ with additional agents placed at each of the POIs in range of the agent
+
     cf_diff = GlobalReward.calculate_reward(temp_domain) - GlobalReward.calculate_reward(domain_state)
     cf_diff = cf_diff / len(considered_poi)
 
