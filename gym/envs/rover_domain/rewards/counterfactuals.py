@@ -1,10 +1,8 @@
 from gym.envs.rover_domain.rewards.g import GlobalReward
 from gym.envs.rover_domain.rewards.d import DifferenceReward
 
-"""
-TODO: Needs to be modified to fit within a D++ implementation in a different version of the rover domain.
-    -Names for accessing domain_state information will need to be adjusted.
-"""
+# TODO: Needs to be modified to fit within a D++ implementation.
+
 
 def cf(cf, domain_state, agent_id, agent_info, consideration_radius=5.0):
     """
@@ -47,33 +45,27 @@ def cf(cf, domain_state, agent_id, agent_info, consideration_radius=5.0):
             reward_improved = False
             # Domain to implement counterfactual agents
             new_domain_state = domain_state
-            # new agent id
+            # New agent id
             id_num = len(domain_state["agents"])
             # List of POIs where counterfactual agents were placed
             cf_poi = []
 
-            # Place counterfactual agents one by one
+            # Evaluate counterfactual agents one by one
             if cf == 0:
                 while (reward_improved == False):
                     for poi_loc in considered_poi:
                         # Calculate D++ with additional agent placed at POI considered
                         cf_diff = cf_D(new_domain_state, poi_loc)
+                        cf_poi.append(poi_loc)
+                        # Create a new agent at POI
+                        new_agent_id = "agent_" + str(id_num)
+                        new_domain_state['agents'][new_agent_id] = {'loc': poi_loc, 'theta': 0}
+                        id_num = id_num + 1
                         # Checks if additional agent improves reward
-                        if cf_diff <= compare_d:
-                            cf_poi.append(poi_loc)
-                            # create a new agent at POI that DIDN'T improve reward
-                            new_agent_id = "agent_" + str(id_num)
-                            id_num = id_num + 1
-                            new_domain_state['agents'][new_agent_id] = {'loc': poi_loc, 'theta': 0}
-                        else:
-                            cf_poi.append(poi_loc)
-                            # create a new agent at POI that improved reward
-                            new_agent_id = "agent_" + str(id_num)
-                            id_num = id_num + 1
-                            new_domain_state['agents'][new_agent_id] = {'loc': poi_loc, 'theta': 0}
+                        if cf_diff > compare_d:
                             reward_improved = True
                             break
-            # Place counterfactual agents in waves. wave --> one agent per POI
+            # Evaluate counterfactual agents in waves. wave --> one agent at each POI
             elif cf == 1:
                 while (reward_improved == False):
                     for poi_loc in considered_poi and len(cf_poi) < agent_limit:
