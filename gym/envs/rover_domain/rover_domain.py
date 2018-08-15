@@ -94,7 +94,6 @@ class RoverDomain(gym.Env):
         # half of this number needs to be added to the locations of all objects, to center rendering
         scale = (screen_width - 50) / self.world_width
         agent_side = 10
-        poi_rad = 5
 
         if self.viewer is None:
             self.viewer = rendering.Viewer(screen_width, screen_height)
@@ -103,9 +102,10 @@ class RoverDomain(gym.Env):
             # Render agents
             color = 0
             for i in range(self.num_agents):
-                color = color + (1/self.num_agents)
                 l, r, t, b = -agent_side/2, agent_side/2, agent_side/2, -agent_side/2   # left, right, top, bottom
                 agent = rendering.FilledPolygon([(l,b), (l,t), (r,t), (r,b)])
+                # Change color for each agent
+                color = color + (1 / self.num_agents)
                 agent.set_color(0, color, 0)    #rgb
                 agenttrans = rendering.Transform()
                 agent.add_attr(agenttrans)
@@ -115,9 +115,12 @@ class RoverDomain(gym.Env):
             # Render POIs and their observation radius
             color = 0
             for i in range(self.num_pois):
-                color = color + (1/self.num_pois)
+                # Customize the radius size of a POI according to its value
+                poi_rad = 5 + (self.poi_loc['poi_' + str(i)]['value'] / 2)
                 poi = rendering.make_circle(poi_rad)
                 observation_rad = rendering.make_circle(self.observation_rad*scale, 30, False)
+                # Change color for each POI
+                color = color + (1 / self.num_pois)
                 poi.set_color(color, 0, 0)  #rgb
                 observation_rad.set_color(color, 0, 0)
                 self.poitrans = rendering.Transform()
@@ -143,13 +146,13 @@ class RoverDomain(gym.Env):
             self.agent_trans[a].set_translation(agent_x, agent_y)
 
             # Render agent's path
-            color = color + (1 / self.num_agents)
             path["agent" + str(a)] = []
             for loc in self.path["agent" + str(a)]:
                 x = loc[0] * scale+25
                 y = loc[1] * scale+25
                 path["agent" + str(a)].append(tuple([x, y]))
             agent_path = rendering.make_polyline(path["agent" + str(a)])
+            color = color + (1 / self.num_agents)
             agent_path.set_color(0, color, 0)   #rgb
             self.viewer.add_geom(agent_path)
 
